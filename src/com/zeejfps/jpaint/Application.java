@@ -37,8 +37,8 @@ import com.zeejfps.jpaint.ui.WorkPanel;
 
 public class Application implements Runnable {
 	
-	public static final int WIDTH = 840, HEIGHT = 480;
-	public static final String TITLE = "JPaint v0.0.3";
+	public static final int WIDTH = 960, HEIGHT = 540;
+	public static final String TITLE = "JPaint v0.0.4";
 	
 	private volatile boolean running;
 	private Thread appThread;
@@ -87,6 +87,7 @@ public class Application implements Runnable {
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setJMenuBar(menuBar);
 		window.setContentPane(contentPane);
+		window.setMinimumSize(new Dimension(640, 480));
 		window.pack();
 		window.setLocationRelativeTo(null);
 		window.setVisible(true);
@@ -103,6 +104,14 @@ public class Application implements Runnable {
 		// Create all the menu items
 		JMenuItem newMenuItem = new JMenuItem("New");
 		newMenuItem.setAccelerator(KeyStroke.getKeyStroke('N', InputEvent.CTRL_DOWN_MASK));
+		newMenuItem.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
+		
 		JMenuItem openFileMenuItem = new JMenuItem("Open...");
 		JMenuItem saveMenuItem = new JMenuItem("Save");
 		saveMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
@@ -143,9 +152,21 @@ public class Application implements Runnable {
 		editMenu.add(undoMenuItem);
 		editMenu.add(redoMenuItem);
 	
+		JMenu windowsMenu = new JMenu("Windows");
+		
+		JMenuItem minimizeAllMenuItem = new JMenuItem("Minimize all...");
+		JMenuItem maximizeAllMenuItem = new JMenuItem("Maximize all...");
+		JMenuItem closeAllMenuItem = new JMenuItem("Close all...");
+		
+		windowsMenu.add(minimizeAllMenuItem);
+		windowsMenu.add(maximizeAllMenuItem);
+		windowsMenu.addSeparator();
+		windowsMenu.add(closeAllMenuItem);
+		
 		// Add to the menu bar
 		menuBar.add(fileMenu);
 		menuBar.add(editMenu);
+		menuBar.add(windowsMenu);
 		
 		return menuBar;
 	}
@@ -252,9 +273,10 @@ public class Application implements Runnable {
 	public static void main(String[] args) {
 		try {
 	        UIManager.setLookAndFeel(
-	            UIManager.getSystemLookAndFeelClassName());
+	            UIManager.getCrossPlatformLookAndFeelClassName());
 	    } 
 	    catch (Exception e) {}
+		JFrame.setDefaultLookAndFeelDecorated(true);
 		
 		new Application(args);	
 	}

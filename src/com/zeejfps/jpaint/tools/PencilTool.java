@@ -1,6 +1,7 @@
 package com.zeejfps.jpaint.tools;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -61,9 +62,18 @@ public class PencilTool extends Tool {
 
 		@Override
 		public void draw(Graphics g) {
-			for(Point p : points) {
-				g.fillRect(p.x-2, p.y-2, 4, 4);
+			Graphics2D gg = (Graphics2D)g.create();
+			
+			int[] xPoints = new int[points.size()];
+			int[] yPoints = new int[points.size()];
+			int i = 0;
+			for (Point p : points) {
+				xPoints[i] = p.x;
+				yPoints[i] = p.y;
+				i++;
 			}
+			gg.drawPolyline(xPoints, yPoints, points.size());
+			gg.dispose();
 		}
 		
 	}

@@ -7,7 +7,6 @@ import java.awt.event.MouseEvent;
 import javax.swing.JPanel;
 
 import com.zeejfps.jpaint.ui.DrawingCommand;
-import com.zeejfps.jpaint.ui.RectCommand;
 
 public class RectTool extends Tool {
 
