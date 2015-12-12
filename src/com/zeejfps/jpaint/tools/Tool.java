@@ -6,11 +6,11 @@ import java.awt.event.KeyListener;
 import javax.swing.JPanel;
 import javax.swing.event.MouseInputListener;
 
-import com.zeejfps.jpaint.ui.Frame;
+import com.zeejfps.jpaint.Context;
 
 public abstract class Tool implements MouseInputListener, KeyListener{
 
-	protected Frame frame;
+	protected Context context;
 	
 	private String name;
 	
@@ -22,8 +22,8 @@ public abstract class Tool implements MouseInputListener, KeyListener{
 	
 	public abstract JPanel getToolPanel();
 	
-	public void setFrame(Frame f){
-		this.frame = f;
+	public void setContext(Context context) {
+		this.context = context;
 	}
 	
 	public String getName() {

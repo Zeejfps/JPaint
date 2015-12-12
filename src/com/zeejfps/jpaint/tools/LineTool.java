@@ -1,6 +1,7 @@
 package com.zeejfps.jpaint.tools;
 
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
@@ -31,8 +32,7 @@ public class LineTool extends Tool {
 
 	public void draw(Graphics g) {
 		if (drawing)
-			command.draw(g);
-			
+			command.draw(g);	
 	}
 	
 	@Override
@@ -50,7 +50,7 @@ public class LineTool extends Tool {
 		if (!drawing) return;
 		
 		drawing = false;
-		frame.addCommand(command);
+		context.pushCommand(command);
 	}
 
 	@Override
@@ -76,6 +76,7 @@ public class LineTool extends Tool {
 		@Override
 		public void draw(Graphics g) {
 			Graphics2D g2d = (Graphics2D)g.create();
+			g2d.setColor(Color.BLACK);
 			g2d.setStroke(new BasicStroke(size));
 			g2d.drawLine(x1, y1, x2, y2);
 			g2d.dispose();
@@ -93,7 +94,6 @@ public class LineTool extends Tool {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				size = Integer.parseInt(sizeFld.getText());
-				System.out.println("Size changed...");
 			}
 		});
 		

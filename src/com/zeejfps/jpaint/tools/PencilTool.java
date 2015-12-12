@@ -1,5 +1,6 @@
 package com.zeejfps.jpaint.tools;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -34,7 +35,7 @@ public class PencilTool extends Tool {
 		if (!drawing) return;
 		
 		drawing = false;
-		frame.addCommand(command);
+		context.pushCommand(command);
 	}
 
 	@Override
@@ -62,7 +63,7 @@ public class PencilTool extends Tool {
 
 		@Override
 		public void draw(Graphics g) {
-			Graphics2D gg = (Graphics2D)g.create();
+			Graphics2D g2d = (Graphics2D)g.create();
 			
 			int[] xPoints = new int[points.size()];
 			int[] yPoints = new int[points.size()];
@@ -72,8 +73,9 @@ public class PencilTool extends Tool {
 				yPoints[i] = p.y;
 				i++;
 			}
-			gg.drawPolyline(xPoints, yPoints, points.size());
-			gg.dispose();
+			g2d.setColor(Color.BLACK);
+			g2d.drawPolyline(xPoints, yPoints, points.size());
+			g2d.dispose();
 		}
 		
 	}

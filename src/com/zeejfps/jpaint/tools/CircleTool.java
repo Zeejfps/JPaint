@@ -1,6 +1,8 @@
 package com.zeejfps.jpaint.tools;
 
+import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
@@ -30,7 +32,7 @@ public class CircleTool extends Tool {
 		if(!drawing) return;
 		
 		drawing = false;
-		frame.addCommand(command);
+		context.pushCommand(command);
 	}
 
 	@Override
@@ -85,7 +87,10 @@ public class CircleTool extends Tool {
 		
 		@Override
 		public void draw(Graphics g) {
-			g.drawOval(x, y, width, height);
+			Graphics2D g2d = (Graphics2D)g.create();
+			g2d.setColor(Color.BLACK);
+			g2d.drawOval(x, y, width, height);
+			g2d.dispose();
 		}
 
 	}

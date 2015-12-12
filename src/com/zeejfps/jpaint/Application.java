@@ -11,11 +11,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.beans.PropertyVetoException;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -32,20 +36,25 @@ import com.zeejfps.jpaint.tools.CircleTool;
 import com.zeejfps.jpaint.tools.LineTool;
 import com.zeejfps.jpaint.tools.PencilTool;
 import com.zeejfps.jpaint.tools.RectTool;
+import com.zeejfps.jpaint.tools.Tool;
+import com.zeejfps.jpaint.ui.EditFrame;
 import com.zeejfps.jpaint.ui.ToolOptionPanel;
-import com.zeejfps.jpaint.ui.WorkPanel;
 
 public class Application implements Runnable {
 	
 	public static final int WIDTH = 960, HEIGHT = 540;
-	public static final String TITLE = "JPaint v0.0.4";
+	public static final String TITLE = "JPaint v0.0.5";
+	
+	public static final int MAX_UNDOS = 25;
 	
 	private volatile boolean running;
 	private Thread appThread;
 	
-	private WorkPanel workPanel;
 	private ToolOptionPanel toolOptionsPanel;
 	private JFrame window;
+	private Context currContext;
+	private Tool currTool;
+	private JLabel mousePosLbl;
 	
 	public Application(String[] args) {
 		appThread = new Thread(this);
@@ -55,6 +64,7 @@ public class Application implements Runnable {
 	@Override
 	public void run() {
 		if (running) return;
+		
 		
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
@@ -73,8 +83,10 @@ public class Application implements Runnable {
 		}
 
 		running = true;
+		setTool(new LineTool());
 		while(running) {
-			workPanel.getDrawingPanel().repaint();
+			//workPanel.getDrawingPanel().repaint();
+			currContext.repaint();
 		}
 	}
 	
@@ -135,7 +147,8 @@ public class Application implements Runnable {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				workPanel.getDrawingPanel().getFrame().undo();
+				//workPanel.getDrawingPanel().getFrame().undo();
+				currContext.undo();
 			}
 		});
 		JMenuItem redoMenuItem = new JMenuItem("Redo");
@@ -144,7 +157,8 @@ public class Application implements Runnable {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				workPanel.getDrawingPanel().getFrame().redo();
+				//workPanel.getDrawingPanel().getFrame().redo();
+				currContext.redo();
 			}
 		});
 		
@@ -182,11 +196,14 @@ public class Application implements Runnable {
 		JPanel toolsPanel = createToolsPanel();
 		panel.add(toolsPanel, BorderLayout.WEST);
 		
-		workPanel = new WorkPanel();
-		panel.add(workPanel, BorderLayout.CENTER);
+		//workPanel = new WorkPanel();
+		//panel.add(workPanel, BorderLayout.CENTER);
+		
+		JPanel workAreaPanel = createWorkArea();
+		panel.add(workAreaPanel, BorderLayout.CENTER);
 		
 		LineTool startTool = new LineTool();
-		workPanel.getDrawingPanel().setTool(startTool);
+		//workPanel.getDrawingPanel().setTool(startTool);
 		toolOptionsPanel.setTool(startTool);
 	
 		return panel;
@@ -205,8 +222,9 @@ public class Application implements Runnable {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				LineTool t = new LineTool();
-				workPanel.getDrawingPanel().setTool(t);
-				toolOptionsPanel.setTool(t);
+				//workPanel.getDrawingPanel().setTool(t);
+				//toolOptionsPanel.setTool(t);
+				setTool(t);
 			}
 		});
 		lineTool.setSelected(true);
@@ -217,8 +235,9 @@ public class Application implements Runnable {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				CircleTool c = new CircleTool();
-				workPanel.getDrawingPanel().setTool(c);
-				toolOptionsPanel.setTool(c);
+				//workPanel.getDrawingPanel().setTool(c);
+				//toolOptionsPanel.setTool(c);
+				setTool(c);
 			}
 		});
 		
@@ -227,7 +246,8 @@ public class Application implements Runnable {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				workPanel.getDrawingPanel().setTool(new RectTool());
+				//workPanel.getDrawingPanel().setTool(new RectTool());
+				setTool(new RectTool());
 			}
 		});
 		
@@ -236,7 +256,8 @@ public class Application implements Runnable {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				workPanel.getDrawingPanel().setTool(new PencilTool());
+				//workPanel.getDrawingPanel().setTool(new PencilTool());
+				setTool(new PencilTool());
 			}
 		});
 		
@@ -265,9 +286,65 @@ public class Application implements Runnable {
 		return button;
 	}
 	
-	private JPanel createDebugPanel() {
-		JPanel panel = new JPanel();
-		return panel;
+	private JPanel createWorkArea() {
+		JPanel mainPanel = new JPanel(new BorderLayout());
+
+		JDesktopPane desktopPane = new JDesktopPane();
+		desktopPane.setBackground(Color.LIGHT_GRAY);
+		desktopPane.setFocusable(false);
+		mainPanel.add(desktopPane, BorderLayout.CENTER);
+		
+		JPanel debugPanel = new JPanel(new BorderLayout());
+		mainPanel.add(debugPanel, BorderLayout.SOUTH);
+		
+		JPanel mousePosPanel = new JPanel(new BorderLayout());
+		mousePosPanel.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
+		debugPanel.add(mousePosPanel, BorderLayout.EAST);
+		
+		mousePosLbl = new JLabel();
+		mousePosPanel.add(mousePosLbl, BorderLayout.CENTER);	
+		
+		Context c = new Context(300, 300, this);
+		currContext = c;
+		c.addMouseMotionListener(new MouseMotionListener() {
+			
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				mousePosLbl.setText(e.getX() + ", " + e.getY());
+			}
+			
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				mousePosLbl.setText(e.getX() + ", " + e.getY());
+			}
+		});
+		EditFrame f = new EditFrame("Test", c);
+		desktopPane.add(f);
+		
+		try {
+			f.setMaximum(true);
+		} catch (PropertyVetoException e) {
+			e.printStackTrace();
+		}
+		
+		return mainPanel;
+	}
+	
+	public void setTool(Tool t) {
+		if (currTool != null) {
+			currContext.removeKeyListener(currTool);
+			currContext.removeMouseListener(currTool);
+			currContext.removeMouseMotionListener(currTool);
+		}
+		
+		currTool = t;
+		currTool.setContext(currContext);
+		currContext.addMouseListener(currTool);
+		currContext.addMouseMotionListener(currTool);
+	}
+	
+	public Tool getCurrentTool() {
+		return currTool;
 	}
 	
 	public static void main(String[] args) {
