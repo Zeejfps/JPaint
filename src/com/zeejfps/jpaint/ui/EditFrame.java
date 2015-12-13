@@ -41,6 +41,7 @@ public class EditFrame extends JInternalFrame {
 				int x = container.getWidth()/2 - context.getWidth()/2;
 				int y = container.getHeight()/2 - context.getHeight()/2;
 				context.setBounds(x, y, context.getWidth(), context.getHeight());
+				scrollPane.repaint();
 			}
 			
 			@Override

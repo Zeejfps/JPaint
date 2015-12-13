@@ -31,13 +31,16 @@ public class LineTool extends Tool {
 	}
 
 	public void draw(Graphics g) {
-		if (drawing)
+		if (drawing) {
 			command.draw(g);	
+		}
 	}
 	
 	@Override
 	public void mousePressed(MouseEvent e) {
 		if (drawing) return;
+		
+		System.out.println(context);
 		
 		// Set where we want to start drawing
 		drawing = true;
@@ -51,6 +54,7 @@ public class LineTool extends Tool {
 		
 		drawing = false;
 		context.pushCommand(command);
+		System.out.println(context);
 	}
 
 	@Override

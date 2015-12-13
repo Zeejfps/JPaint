@@ -8,7 +8,7 @@ import javax.swing.event.MouseInputListener;
 
 import com.zeejfps.jpaint.Context;
 
-public abstract class Tool implements MouseInputListener, KeyListener{
+public abstract class Tool implements MouseInputListener, KeyListener {
 
 	protected Context context;
 	

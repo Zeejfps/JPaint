@@ -47,7 +47,7 @@ public class PencilTool extends Tool {
 	
 	@Override
 	public void draw(Graphics g) {
-		if (drawing) {
+		if (drawing && command != null) {
 			command.draw(g);
 		}
 	}
@@ -68,13 +68,13 @@ public class PencilTool extends Tool {
 			int[] xPoints = new int[points.size()];
 			int[] yPoints = new int[points.size()];
 			int i = 0;
-			for (Point p : points) {
-				xPoints[i] = p.x;
-				yPoints[i] = p.y;
+			for (Object p : points.toArray()) {
+				xPoints[i] = ((Point)p).x;
+				yPoints[i] = ((Point)p).y;
 				i++;
 			}
 			g2d.setColor(Color.BLACK);
-			g2d.drawPolyline(xPoints, yPoints, points.size());
+			g2d.drawPolyline(xPoints, yPoints, i);
 			g2d.dispose();
 		}
 		

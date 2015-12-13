@@ -4,11 +4,15 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -22,28 +26,34 @@ import javax.swing.ImageIcon;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
+import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.InternalFrameListener;
 
 import com.zeejfps.jpaint.tools.CircleTool;
 import com.zeejfps.jpaint.tools.LineTool;
 import com.zeejfps.jpaint.tools.PencilTool;
 import com.zeejfps.jpaint.tools.RectTool;
 import com.zeejfps.jpaint.tools.Tool;
+import com.zeejfps.jpaint.ui.DrawingCommand;
 import com.zeejfps.jpaint.ui.EditFrame;
 import com.zeejfps.jpaint.ui.ToolOptionPanel;
 
 public class Application implements Runnable {
 	
-	public static final int WIDTH = 960, HEIGHT = 540;
-	public static final String TITLE = "JPaint v0.0.5";
+	public static final int WIDTH = 1080, HEIGHT = 720;
+	public static final String TITLE = "JPaint v0.0.6";
 	
 	public static final int MAX_UNDOS = 25;
 	
@@ -55,8 +65,26 @@ public class Application implements Runnable {
 	private Context currContext;
 	private Tool currTool;
 	private JLabel mousePosLbl;
+	private JDesktopPane desktopPane;
+	
+	private LineTool lineTool;
+	private RectTool rectTool;
+	private CircleTool circleTool;
+	private PencilTool pencilTool;
+	
+	private SwingWorker<Void, Void> t;
 	
 	public Application(String[] args) {
+		
+		lineTool = new LineTool();
+		rectTool = new RectTool();
+		circleTool = new CircleTool();
+		pencilTool = new PencilTool();
+		
+		currTool = lineTool;
+		
+
+
 		appThread = new Thread(this);
 		appThread.start();
 	}
@@ -64,7 +92,6 @@ public class Application implements Runnable {
 	@Override
 	public void run() {
 		if (running) return;
-		
 		
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
@@ -83,10 +110,20 @@ public class Application implements Runnable {
 		}
 
 		running = true;
-		setTool(new LineTool());
 		while(running) {
-			//workPanel.getDrawingPanel().repaint();
-			currContext.repaint();
+			//desktopPane.repaint();
+			if (currContext != null && currContext.isVisible()) {
+				Graphics g = currContext.getGraphics();
+				if (g != null) {
+					System.out.println("Test");
+					currContext.draw();
+					Graphics gg = currContext.getImage().getGraphics();
+					currTool.draw(gg);
+					gg.dispose();
+					g.drawImage(currContext.getImage(), 0, 0, null);
+					g.dispose();				
+				}
+			}
 		}
 	}
 	
@@ -120,7 +157,11 @@ public class Application implements Runnable {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				
+				Object[] options = {"Yes", "No"};
+				int n = JOptionPane.showOptionDialog(window, "Create new File?", "New File", 
+						JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+				if (n == 0)
+					createDocument();
 			}
 		});
 		
@@ -196,15 +237,29 @@ public class Application implements Runnable {
 		JPanel toolsPanel = createToolsPanel();
 		panel.add(toolsPanel, BorderLayout.WEST);
 		
-		//workPanel = new WorkPanel();
-		//panel.add(workPanel, BorderLayout.CENTER);
-		
 		JPanel workAreaPanel = createWorkArea();
 		panel.add(workAreaPanel, BorderLayout.CENTER);
+
+		JPanel sidePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+		sidePanel.setBorder(BorderFactory.createRaisedBevelBorder());
+		panel.add(sidePanel, BorderLayout.EAST);
 		
-		LineTool startTool = new LineTool();
-		//workPanel.getDrawingPanel().setTool(startTool);
-		toolOptionsPanel.setTool(startTool);
+		JPanel testPanel = new JPanel(new BorderLayout());
+		testPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+		JPanel topPanel = new JPanel();
+		topPanel.setBorder(BorderFactory.createRaisedBevelBorder());
+		JLabel titleLbl = new JLabel("Layers");
+		topPanel.add(titleLbl);
+		testPanel.add(topPanel, BorderLayout.NORTH);
+		testPanel.setPreferredSize(new Dimension(200, 150));
+		
+		String[] test = {"Layer", "Other Layer"};
+		JList<String> list = new JList<>(test);
+		testPanel.add(list, BorderLayout.CENTER);
+		
+		sidePanel.add(testPanel);
+		
+		toolOptionsPanel.setTool(lineTool);
 	
 		return panel;
 	}
@@ -213,64 +268,57 @@ public class Application implements Runnable {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createBevelBorder(BevelBorder.RAISED), BorderFactory.createTitledBorder("Tools")));
+		panel.setPreferredSize(new Dimension(55, 0));
 
 		JPanel toolGrid = new JPanel(new GridLayout(4, 1));
 		
-		JToggleButton lineTool = createToolButton("LineIcon.png");
-		lineTool.addActionListener(new ActionListener() {
+		JToggleButton lineToolBtn = createToolButton("LineIcon.png");
+		lineToolBtn.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				LineTool t = new LineTool();
-				//workPanel.getDrawingPanel().setTool(t);
-				//toolOptionsPanel.setTool(t);
-				setTool(t);
+				setTool(lineTool);
 			}
 		});
-		lineTool.setSelected(true);
+		lineToolBtn.setSelected(true);
 		
-		JToggleButton circleTool = createToolButton("CircleIcon.png");
-		circleTool.addActionListener(new ActionListener() {
+		JToggleButton circleToolBtn = createToolButton("CircleIcon.png");
+		circleToolBtn.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				CircleTool c = new CircleTool();
-				//workPanel.getDrawingPanel().setTool(c);
-				//toolOptionsPanel.setTool(c);
-				setTool(c);
+				setTool(circleTool);
 			}
 		});
 		
-		JToggleButton rectTool = createToolButton("RectIcon.png");
-		rectTool.addActionListener(new ActionListener() {
+		JToggleButton rectToolBtn = createToolButton("RectIcon.png");
+		rectToolBtn.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				//workPanel.getDrawingPanel().setTool(new RectTool());
-				setTool(new RectTool());
+				setTool(rectTool);
 			}
 		});
 		
-		JToggleButton freeTool = createToolButton("PencilIcon.png");
-		freeTool.addActionListener(new ActionListener() {
+		JToggleButton pencilToolBtn = createToolButton("PencilIcon.png");
+		pencilToolBtn.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				//workPanel.getDrawingPanel().setTool(new PencilTool());
-				setTool(new PencilTool());
+				setTool(pencilTool);
 			}
 		});
 		
-		toolGrid.add(lineTool);
-		toolGrid.add(circleTool);
-		toolGrid.add(rectTool);
-		toolGrid.add(freeTool);
+		toolGrid.add(lineToolBtn);
+		toolGrid.add(circleToolBtn);
+		toolGrid.add(rectToolBtn);
+		toolGrid.add(pencilToolBtn);
 		
 		ButtonGroup group = new ButtonGroup();
-		group.add(lineTool);
-		group.add(circleTool);
-		group.add(rectTool);
-		group.add(freeTool);
+		group.add(lineToolBtn);
+		group.add(circleToolBtn);
+		group.add(rectToolBtn);
+		group.add(pencilToolBtn);
 		
 		panel.add(toolGrid, BorderLayout.NORTH);
 		return panel;
@@ -289,20 +337,26 @@ public class Application implements Runnable {
 	private JPanel createWorkArea() {
 		JPanel mainPanel = new JPanel(new BorderLayout());
 
-		JDesktopPane desktopPane = new JDesktopPane();
+		desktopPane = new JDesktopPane();
 		desktopPane.setBackground(Color.LIGHT_GRAY);
 		desktopPane.setFocusable(false);
 		mainPanel.add(desktopPane, BorderLayout.CENTER);
 		
 		JPanel debugPanel = new JPanel(new BorderLayout());
+		debugPanel.setBorder(BorderFactory.createRaisedBevelBorder());
 		mainPanel.add(debugPanel, BorderLayout.SOUTH);
 		
 		JPanel mousePosPanel = new JPanel(new BorderLayout());
 		mousePosPanel.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
 		debugPanel.add(mousePosPanel, BorderLayout.EAST);
 		
-		mousePosLbl = new JLabel();
+		mousePosLbl = new JLabel(0 + ", " + 0);
 		mousePosPanel.add(mousePosLbl, BorderLayout.CENTER);	
+		
+		return mainPanel;
+	}
+	
+	private void createDocument() {
 		
 		Context c = new Context(300, 300, this);
 		currContext = c;
@@ -318,16 +372,51 @@ public class Application implements Runnable {
 				mousePosLbl.setText(e.getX() + ", " + e.getY());
 			}
 		});
-		EditFrame f = new EditFrame("Test", c);
-		desktopPane.add(f);
 		
+		EditFrame f = new EditFrame("Test", c);
+		f.addInternalFrameListener(new InternalFrameListener() {
+			
+			@Override
+			public void internalFrameOpened(InternalFrameEvent e) {}
+			
+			@Override
+			public void internalFrameIconified(InternalFrameEvent e) {}
+			
+			@Override
+			public void internalFrameDeiconified(InternalFrameEvent e) {}
+					
+			@Override
+			public void internalFrameClosing(InternalFrameEvent e) {}
+			
+			@Override
+			public void internalFrameClosed(InternalFrameEvent e) {}
+			
+			@Override
+			public void internalFrameDeactivated(InternalFrameEvent e) {
+				
+				currContext.removeKeyListener(currTool);
+				currContext.removeMouseListener(currTool);
+				currContext.removeMouseMotionListener(currTool);
+				//currContext = null;
+				System.out.println("Deactivate");
+			}
+		
+			@Override
+			public void internalFrameActivated(InternalFrameEvent e) {
+				
+				currContext =  f.getContext();
+				setTool(currTool);
+				System.out.println("Activated");
+			}
+		});
+		desktopPane.add(f);
+		desktopPane.repaint();
+		desktopPane.revalidate();
 		try {
 			f.setMaximum(true);
 		} catch (PropertyVetoException e) {
 			e.printStackTrace();
-		}
-		
-		return mainPanel;
+		} 
 	}
 	
 	public void setTool(Tool t) {

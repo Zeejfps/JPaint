@@ -19,17 +19,21 @@ import com.zeejfps.jpaint.ui.DrawingCommand;
 @SuppressWarnings("serial")
 public class Context extends JPanel {
 
+	private static int id;
+	
 	private final BufferedImage image;
 	private final BufferedImage buffer;
 	private final int width, height;
 	private final int[] pixels;
 	private final Application app;
 	
-	private Stack<DrawingCommand> redoStack;
+	private volatile Stack<DrawingCommand> redoStack;
 	private Stack<DrawingCommand> undoStack;
 	
+	private int i;
+	
 	public Context(int width, int height, Application app) {
-		
+		i = ++id;
 		this.width = width;
 		this.height = height;
 		this.app = app;
@@ -79,20 +83,35 @@ public class Context extends JPanel {
 		}
 	}
 
+	public String toString() {
+		return "ID: " + i;
+	}
+	
+
 	@Override
 	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		g.drawImage(image, 0, 0, null);
+	}
 
+	public void draw() {
 		clear(0xffffffff);
 		
 		Graphics gg = getImage().createGraphics();
 		gg.drawImage(buffer, 0, 0, null);
-		for (DrawingCommand command : undoStack) {
-			command.draw(gg);
+		for (Object command : undoStack.toArray()) {
+			((DrawingCommand)command).draw(gg);
 		}
-		app.getCurrentTool().draw(gg);
+		//app.getCurrentTool().draw(gg);
 		gg.dispose();
-		
-		g.drawImage(image, 0, 0, null);
+	}
+	
+	public BufferedImage getBuffer() {
+		return buffer;
+	}
+	
+	public synchronized Stack<DrawingCommand> getUndoStack() {
+		return undoStack;
 	}
 	
 	public BufferedImage getImage() {

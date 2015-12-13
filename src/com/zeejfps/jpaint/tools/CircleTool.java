@@ -63,7 +63,7 @@ public class CircleTool extends Tool {
 
 	@Override
 	public void draw(Graphics g) {
-		if (drawing)
+		if (drawing && command != null)
 			command.draw(g);
 	}
 
