@@ -53,7 +53,7 @@ import com.zeejfps.jpaint.ui.ToolOptionPanel;
 public class Application implements Runnable {
 	
 	public static final int WIDTH = 1080, HEIGHT = 720;
-	public static final String TITLE = "JPaint v0.0.6";
+	public static final String TITLE = "JPaint v0.0.7";
 	
 	public static final int MAX_UNDOS = 25;
 	
