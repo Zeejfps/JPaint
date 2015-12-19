@@ -2,6 +2,7 @@ package com.zeejfps.jpaint;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 
 import javax.swing.JPanel;
 
@@ -31,6 +32,7 @@ public class ContextPanel extends JPanel {
 		if (scale <= 0) {
 			scale = 0.1f;
 		}
+		revalidate();
 	}
 	
 	private void draw(Graphics g) {

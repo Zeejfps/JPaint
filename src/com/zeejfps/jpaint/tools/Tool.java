@@ -6,9 +6,7 @@ import java.awt.event.KeyListener;
 import javax.swing.JPanel;
 import javax.swing.event.MouseInputListener;
 
-import com.zeejfps.jpaint.Context;
 import com.zeejfps.jpaint.ContextPanel;
-import com.zeejfps.jpaint.OldContext;
 
 public abstract class Tool implements MouseInputListener, KeyListener {
 
