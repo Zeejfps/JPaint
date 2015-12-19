@@ -20,33 +20,12 @@ import java.awt.event.MouseMotionListener;
 import java.beans.PropertyVetoException;
 import java.lang.reflect.InvocationTargetException;
 
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
-import javax.swing.JDesktopPane;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JToggleButton;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
-import com.zeejfps.jpaint.tools.CircleTool;
-import com.zeejfps.jpaint.tools.LineTool;
-import com.zeejfps.jpaint.tools.PencilTool;
-import com.zeejfps.jpaint.tools.RectTool;
-import com.zeejfps.jpaint.tools.Tool;
-import com.zeejfps.jpaint.ui.DrawingCommand;
+import com.zeejfps.jpaint.tools.*;
 import com.zeejfps.jpaint.ui.EditFrame;
 import com.zeejfps.jpaint.ui.ToolOptionPanel;
 
@@ -62,7 +41,7 @@ public class Application implements Runnable {
 	
 	private ToolOptionPanel toolOptionsPanel;
 	private JFrame window;
-	private Context currContext;
+	private ContextPanel currContext;
 	private Tool currTool;
 	private JLabel mousePosLbl;
 	private JDesktopPane desktopPane;
@@ -113,16 +92,8 @@ public class Application implements Runnable {
 		while(running) {
 			//desktopPane.repaint();
 			if (currContext != null && currContext.isVisible()) {
-				Graphics g = currContext.getGraphics();
-				if (g != null) {
-					System.out.println("Test");
-					currContext.draw();
-					Graphics gg = currContext.getImage().getGraphics();
-					currTool.draw(gg);
-					gg.dispose();
-					g.drawImage(currContext.getImage(), 0, 0, null);
-					g.dispose();				
-				}
+				currContext.draw();
+					//currTool.draw(gg);				
 			}
 		}
 	}
@@ -157,11 +128,30 @@ public class Application implements Runnable {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Object[] options = {"Yes", "No"};
-				int n = JOptionPane.showOptionDialog(window, "Create new File?", "New File", 
-						JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-				if (n == 0)
-					createDocument();
+				
+				JPanel sizePanel = new JPanel(new GridLayout(2, 2));
+				sizePanel.setBorder(BorderFactory.createTitledBorder("Size"));
+				
+				JLabel widthLbl = new JLabel("Width");
+				JLabel heightLbl = new JLabel("Height");
+				
+				JTextField widthFld = new JTextField();
+				JTextField heightFld = new JTextField();
+				
+				sizePanel.add(widthLbl);
+				sizePanel.add(widthFld);
+				
+				sizePanel.add(heightLbl);
+				sizePanel.add(heightFld);
+				
+				Object[] options = {"Create", "Cancel"};
+				int n = JOptionPane.showOptionDialog(window, sizePanel, "New Sprite", 
+						JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+				if (n == 0) {
+					int width = Integer.parseInt(widthFld.getText());
+					int height = Integer.parseInt(heightFld.getText());
+					createDocument(width, height);
+				}
 			}
 		});
 		
@@ -189,7 +179,7 @@ public class Application implements Runnable {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				//workPanel.getDrawingPanel().getFrame().undo();
-				currContext.undo();
+				//currContext.undo();
 			}
 		});
 		JMenuItem redoMenuItem = new JMenuItem("Redo");
@@ -199,7 +189,7 @@ public class Application implements Runnable {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				//workPanel.getDrawingPanel().getFrame().redo();
-				currContext.redo();
+				//currContext.redo();
 			}
 		});
 		
@@ -356,11 +346,12 @@ public class Application implements Runnable {
 		return mainPanel;
 	}
 	
-	private void createDocument() {
+	private void createDocument(int width, int height) {
 		
-		Context c = new Context(300, 300, this);
-		currContext = c;
-		c.addMouseMotionListener(new MouseMotionListener() {
+		Context c = new Context(width, height);
+		currContext = new ContextPanel(c);
+		/*
+		currContext.addMouseMotionListener(new MouseMotionListener() {
 			
 			@Override
 			public void mouseMoved(MouseEvent e) {
@@ -372,8 +363,8 @@ public class Application implements Runnable {
 				mousePosLbl.setText(e.getX() + ", " + e.getY());
 			}
 		});
-		
-		EditFrame f = new EditFrame("Test", c);
+		*/
+		EditFrame f = new EditFrame("Test", currContext);
 		f.addInternalFrameListener(new InternalFrameListener() {
 			
 			@Override
@@ -404,7 +395,7 @@ public class Application implements Runnable {
 			@Override
 			public void internalFrameActivated(InternalFrameEvent e) {
 				
-				currContext =  f.getContext();
+				currContext =  f.getContextPanel();
 				setTool(currTool);
 				System.out.println("Activated");
 			}

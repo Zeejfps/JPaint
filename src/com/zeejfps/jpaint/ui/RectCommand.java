@@ -1,6 +1,8 @@
-package com.zeejfps.jstickz.ui;
+package com.zeejfps.jpaint.ui;
 
 import java.awt.Graphics;
+
+import com.zeejfps.jpaint.tools.DrawingCommand;
 
 public class RectCommand implements DrawingCommand {
 

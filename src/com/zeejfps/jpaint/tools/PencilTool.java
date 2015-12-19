@@ -10,8 +10,6 @@ import java.util.ArrayList;
 
 import javax.swing.JPanel;
 
-import com.zeejfps.jpaint.ui.DrawingCommand;
-
 public class PencilTool extends Tool {
 
 	private boolean drawing;
@@ -23,11 +21,17 @@ public class PencilTool extends Tool {
 
 	@Override
 	public void mousePressed(MouseEvent e) {
+		System.out.println("Pressed");
 		if (drawing) return;
 		
 		drawing = true;
 		command = new PencilCommand();
 		command.points.add(new Point(e.getX(), e.getY()));
+		
+		int x = (int)(e.getX() / context.getZoom());
+		int y = (int)(e.getY() / context.getZoom());
+		
+		context.getContext().setPixel(x, y, 0xff00ff00);
 	}
 
 	@Override
@@ -35,7 +39,7 @@ public class PencilTool extends Tool {
 		if (!drawing) return;
 		
 		drawing = false;
-		context.pushCommand(command);
+		//context.pushCommand(command);
 	}
 
 	@Override
@@ -47,10 +51,14 @@ public class PencilTool extends Tool {
 	
 	@Override
 	public void draw(Graphics g) {
+		
+		/*
 		if (drawing && command != null) {
-			command.draw(g);
+			command.draw(context.getGraphics());
 		}
+		*/
 	}
+
 
 	@Override
 	public JPanel getToolPanel() {

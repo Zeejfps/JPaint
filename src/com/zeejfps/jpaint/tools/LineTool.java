@@ -15,8 +15,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import com.zeejfps.jpaint.ui.DrawingCommand;
-
 public class LineTool extends Tool {
 
 	private boolean drawing;
@@ -53,7 +51,7 @@ public class LineTool extends Tool {
 		if (!drawing) return;
 		
 		drawing = false;
-		context.pushCommand(command);
+		//context.pushCommand(command);
 		System.out.println(context);
 	}
 

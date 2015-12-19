@@ -7,10 +7,12 @@ import javax.swing.JPanel;
 import javax.swing.event.MouseInputListener;
 
 import com.zeejfps.jpaint.Context;
+import com.zeejfps.jpaint.ContextPanel;
+import com.zeejfps.jpaint.OldContext;
 
 public abstract class Tool implements MouseInputListener, KeyListener {
 
-	protected Context context;
+	protected ContextPanel context;
 	
 	private String name;
 	
@@ -22,7 +24,7 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 	
 	public abstract JPanel getToolPanel();
 	
-	public void setContext(Context context) {
+	public void setContext(ContextPanel context) {
 		this.context = context;
 	}
 	

@@ -8,8 +8,6 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.JPanel;
 
-import com.zeejfps.jpaint.ui.DrawingCommand;
-
 public class RectTool extends Tool {
 
 	private int xPiv, yPiv;
@@ -43,7 +41,7 @@ public class RectTool extends Tool {
 	public void mouseReleased(MouseEvent arg0) {
 		if(!drawing) return;
 		drawing = false;
-		context.pushCommand(command);
+		//context.pushCommand(command);
 	}
 
 	@Override

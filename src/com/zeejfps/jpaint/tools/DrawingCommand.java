@@ -1,4 +1,4 @@
-package com.zeejfps.jpaint.ui;
+package com.zeejfps.jpaint.tools;
 
 import java.awt.Graphics;
 

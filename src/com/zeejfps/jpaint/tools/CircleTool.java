@@ -8,8 +8,6 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.JPanel;
 
-import com.zeejfps.jpaint.ui.DrawingCommand;
-
 public class CircleTool extends Tool {
 
 	private boolean drawing;
@@ -32,7 +30,7 @@ public class CircleTool extends Tool {
 		if(!drawing) return;
 		
 		drawing = false;
-		context.pushCommand(command);
+		//context.pushCommand(command);
 	}
 
 	@Override

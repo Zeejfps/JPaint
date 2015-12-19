@@ -2,17 +2,17 @@ package com.zeejfps.jpaint;
 
 public class ContextManager {
 
-	private Context currentContext;
+	private OldContext currentContext;
 	
 	public ContextManager() {
 		
 	}
 	
-	public Context getCurrentContext() {
+	public OldContext getCurrentContext() {
 		return currentContext;
 	}
 	
-	public void switchContext(Context context) {
+	public void switchContext(OldContext context) {
 		currentContext = context;
 	}
 
