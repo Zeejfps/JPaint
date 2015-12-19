@@ -10,6 +10,9 @@ import java.util.ArrayList;
 
 import javax.swing.JPanel;
 
+import com.zeejfps.jpaint.Command;
+import com.zeejfps.jpaint.Context;
+
 public class PencilTool extends Tool {
 
 	private boolean drawing;
@@ -21,17 +24,48 @@ public class PencilTool extends Tool {
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		System.out.println("Pressed");
 		if (drawing) return;
 		
 		drawing = true;
 		command = new PencilCommand();
 		command.points.add(new Point(e.getX(), e.getY()));
 		
+		
 		int x = (int)(e.getX() / context.getZoom());
 		int y = (int)(e.getY() / context.getZoom());
 		
-		context.getContext().setPixel(x, y, 0xff00ff00);
+		//context.getContext().setPixel(x, y, 0xff00ff00);
+		
+		DrawPixel c = new DrawPixel(context.getContext(), x, y, 0xff00ff00);
+		//c.execute();
+		
+		context.getContext().doCommand(c);
+
+	}
+	
+	private class DrawPixel implements Command {
+
+		private Context context;
+		private int x, y, color, prevColor;
+		
+		public DrawPixel(Context context, int x, int y, int color) {
+			this.context = context;
+			this.x = x;
+			this.y = y;
+			this.color = color;
+		}
+		
+		@Override
+		public void execute() {
+			prevColor = context.getPixel(x, y);
+			context.setPixel(x, y, color);
+		}
+
+		@Override
+		public void undo() {
+			context.setPixel(x, y, prevColor);
+		}
+		
 	}
 
 	@Override

@@ -1,14 +1,6 @@
 package com.zeejfps.jpaint;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Graphics;
-import java.awt.GridLayout;
-import java.awt.Image;
-import java.awt.Insets;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -32,7 +24,7 @@ import com.zeejfps.jpaint.ui.ToolOptionPanel;
 public class Application implements Runnable {
 	
 	public static final int WIDTH = 1080, HEIGHT = 720;
-	public static final String TITLE = "JPaint v0.0.7";
+	public static final String TITLE = "JPixel v0.0.8";
 	
 	public static final int MAX_UNDOS = 25;
 	
@@ -51,8 +43,6 @@ public class Application implements Runnable {
 	private CircleTool circleTool;
 	private PencilTool pencilTool;
 	
-	private SwingWorker<Void, Void> t;
-	
 	public Application(String[] args) {
 		
 		lineTool = new LineTool();
@@ -61,8 +51,6 @@ public class Application implements Runnable {
 		pencilTool = new PencilTool();
 		
 		currTool = lineTool;
-		
-
 
 		appThread = new Thread(this);
 		appThread.start();
@@ -93,7 +81,14 @@ public class Application implements Runnable {
 			//desktopPane.repaint();
 			if (currContext != null && currContext.isVisible()) {
 				currContext.draw();
+				//System.out.println(Thread.currentThread());
 					//currTool.draw(gg);				
+			}
+			try {
+				Thread.sleep((long) 0.06);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 	}
@@ -174,14 +169,32 @@ public class Application implements Runnable {
 		// Create the menu items
 		JMenuItem undoMenuItem = new JMenuItem("Undo");
 		undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK));
-		undoMenuItem.addActionListener(new ActionListener() {
+		ActionListener l = new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				//workPanel.getDrawingPanel().getFrame().undo();
-				//currContext.undo();
+				System.out.println("Action performed");
+				undoMenuItem.setAccelerator(null);
+				new SwingWorker<Void, Void>() {
+
+					@Override
+					protected Void doInBackground() throws Exception {
+						currContext.getContext().undo();
+						return null;
+					}
+					
+					@Override
+					protected void done() {
+						System.out.println("Done");
+						undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK));
+					}
+				}.execute();
+						
 			}
-		});
+			
+		};
+		undoMenuItem.addActionListener(l);
 		JMenuItem redoMenuItem = new JMenuItem("Redo");
 		redoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK));
 		redoMenuItem.addActionListener(new ActionListener() {

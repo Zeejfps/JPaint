@@ -1,9 +1,9 @@
 package com.zeejfps.jpaint;
 
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Rectangle;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
 public class ContextPanel extends JPanel {
@@ -24,6 +24,7 @@ public class ContextPanel extends JPanel {
 	
 	@Override
 	public void paintComponent(Graphics g) {
+		//super.paintComponent(g);
 		draw(g);
 	}
 	
@@ -37,8 +38,12 @@ public class ContextPanel extends JPanel {
 	
 	private void draw(Graphics g) {
 		//context.clear(0xffff00ff);
-		if (g != null)
-			g.drawImage(context.getBuffer(), 0, 0, getWidth(), getHeight(), null);
+		if (g != null) {
+			Image img = context.getBuffer().getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST);
+			g.drawImage(img, 0, 0, getWidth(), getHeight(), null);
+		}
+		
+		
 	}
 	
 	public void draw() {
